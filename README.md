@@ -30,58 +30,56 @@ ProcClock works in five steps:
 
 It also checks the current clock: if the clock is wrong right now, the gap between "now" and the boot-time processes reveals it, even if no process from that window is still running.
 
-## Example output (simulated)
-
-This report comes from the simulated machine in the tests (`tests/run --sample`), not from a real system. In the simulation, the clock was set back 3 days and 2 hours, a tool was run, and then the clock was restored:
+## Example output 
 
 ```text
 ProcClock 0.1.3 - detects system clock changes from process creation times
 https://github.com/santiagolin/ProcClock
 
-Current system time : 2025-03-14 14:56:36 UTC   <- compare with a trusted clock
-Boot time           : 2025-03-14 08:00:00 UTC   (uptime 6h 56m 37s, boot ID 57)
-Processes analyzed  : 110 of 114 running (4 could not be read)
+Current system time : 2026-11-05 21:00:10 UTC   <- compare with a trusted clock
+Boot time           : 2026-11-05 16:00:30 UTC   (uptime 4h 59m 40s, boot ID 926)
+Processes analyzed  : 181 of 181 running
 Threshold           : 1m 00s
 Reference clock     : the current system clock
 
 == Clock timeline (creation order; times per reference clock) ==
   Seg  Clock vs ref        Procs  Sequence          First created (UTC)  Last created (UTC)
-  1    0s                     99  4-102             2025-03-14 08:00:00  2025-03-14 13:00:59
-  2    -3d 02h 00m 00s         3  103-128           2025-03-14 13:08:11  2025-03-14 13:14:11  <== shifted
-  3    0s                      8  138-145           2025-03-14 13:39:36  2025-03-14 14:56:36
+  1    0s                    174  1-2236            2026-11-05 16:00:30  2026-11-05 20:59:30
+  2    -1h 00m 00s             3  2237-2240         2026-11-05 20:59:43  2026-11-05 20:59:47  <== shifted
+  3    0s                      4  2246-2249         2026-11-05 21:00:06  2026-11-05 21:00:06
 
 == Clock changes ==
-  [1] SUSPICIOUS Clock set BACK by 3d 02h 00m 00s
-      When   : between 2025-03-14 13:00:59 and 2025-03-14 13:08:11 UTC (uptime 5h 01m 00s to 5h 08m 12s)
-      Before : svchost.exe (PID 396, seq 102)
-      After  : powershell.exe (PID 400, seq 103)
-      Undone : by change [2]; the clock stayed behind for 6m 00s to 38m 37s
-  [2] SUSPICIOUS Clock set FORWARD by 3d 02h 00m 00s
-      When   : between 2025-03-14 13:14:11 and 2025-03-14 13:39:36 UTC (uptime 5h 14m 12s to 5h 39m 37s)
-      Before : report_tool.exe (PID 500, seq 128)
-      After  : backgroundTaskHost.exe (PID 540, seq 138)
+  [1] SUSPICIOUS Clock set BACK by 1h 00m 00s
+      When   : between 2026-11-05 20:59:30 and 2026-11-05 20:59:43 UTC (uptime 4h 59m 00s to 4h 59m 13s)
+      Before : chrome.exe (PID 13080, seq 2236)
+      After  : SearchProtocolHost.exe (PID 13252, seq 2237)
+      Undone : by change [2]; the clock stayed behind for 4s to 37s
+  [2] SUSPICIOUS Clock set FORWARD by 1h 00m 00s
+      When   : between 2026-11-05 20:59:47 and 2026-11-05 21:00:06 UTC (uptime 4h 59m 17s to 4h 59m 36s)
+      Before : notepad.exe (PID 4020, seq 2240)
+      After  : updater.exe (PID 12588, seq 2246)
       Undoes : change [1]
 
 == Processes created while the clock differed from the reference ==
-  Segment 2: the clock was 3d 02h 00m 00s BEHIND - 3 running processes
-  ~26 processes were started between the first and last of these (seq 103-128); 23 have already exited.
+  Segment 2: the clock was 1h 00m 00s BEHIND - 3 running processes
+  ~4 processes were started between the first and last of these (seq 2237-2240); 1 have already exited.
   Seq      PID     Recorded creation    Real creation        Shift              Process
-  103      400     2025-03-11 11:08:11  2025-03-14 13:08:11  -3d 02h 00m 00s    powershell.exe
-          parent: explorer.exe (PID 272)   user: DESKTOP-7Q2K\bob
-          path  : C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
-          cmd   : "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe"
-  104      404     2025-03-11 11:08:11  2025-03-14 13:08:11  -3d 02h 00m 00s    conhost.exe
-          parent: powershell.exe (PID 400)   user: DESKTOP-7Q2K\bob
-          path  : C:\Windows\System32\conhost.exe
-          cmd   : \??\C:\Windows\system32\conhost.exe 0xffffffff -ForceV1
-  128      500     2025-03-11 11:14:11  2025-03-14 13:14:11  -3d 02h 00m 00s    report_tool.exe
-          parent: powershell.exe (PID 400)   user: DESKTOP-7Q2K\bob
-          path  : C:\Users\bob\Desktop\report_tool.exe
-          cmd   : "C:\Users\bob\Desktop\report_tool.exe" --sign Q3_report.xlsx
+  2237     13252   2026-11-05 19:59:43  2026-11-05 20:59:43  -1h 00m 00s        SearchProtocolHost.exe
+          parent: SearchIndexer.exe (PID 5940)   user: DESKTOP-RNGJ9O0\User
+          path  : C:\Windows\System32\SearchProtocolHost.exe
+          cmd   : "C:\Windows\system32\SearchProtocolHost.exe" Global\UsGthrFltPipeMssGthrPipe_S-1-5-21-949084117-1655274599-2283201091-100132_ Global\UsGthrCtrlFltPipeMssGthrPip...
+  2238     13280   2026-11-05 19:59:43  2026-11-05 20:59:43  -1h 00m 00s        SearchFilterHost.exe
+          parent: SearchIndexer.exe (PID 5940)   user: NT AUTHORITY\SYSTEM
+          path  : C:\Windows\System32\SearchFilterHost.exe
+          cmd   : "C:\Windows\system32\SearchFilterHost.exe" 0 868 872 880 8192 876 852
+  2240     4020    2026-11-05 19:59:47  2026-11-05 20:59:47  -1h 00m 00s        notepad.exe
+          parent: powershell.exe (PID 10448)   user: DESKTOP-RNGJ9O0\User
+          path  : C:\Windows\System32\notepad.exe
+          cmd   : "C:\Windows\system32\notepad.exe"
 
 == Result ==
 CLOCK CHANGES DETECTED: 1 backward, 1 forward. 3 running processes were created while the clock differed from the current system clock.
-Pattern: clock set back by 3d 02h 00m 00s and later restored (changes [1] and [2]).
+Pattern: clock set back by 1h 00m 00s and later restored (changes [1] and [2]).
 ```
 
 ## Build
